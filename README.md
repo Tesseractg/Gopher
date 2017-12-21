@@ -1,5 +1,5 @@
 ## A Machine Learning based malicious domain detection
-![alt text](https://www.tesseract.global/images/LogoFull.png "Tessearct Global")
+
 ### Overview
 A domain can be used for malicious purposes like 
 - Malware, Virus or Trojan delivery
@@ -21,7 +21,7 @@ Note here that we are detecting malicious domain not malicious URL, because we a
 So we have decided to consolidate these behaviours into single problem and develop a prediction model for the detection of malicious domains. Thus we don't have to rely on different solutions and maintaining different models.
 
 ### Dependencies
-requirements.txt file contains actual dependencies to run this project. Install it using `pip install requirements.txt` command.
+requirements.txt file contains actual dependencies to run this project. Install it using `pip install -r requirements.txt` command.
 
 ### Quick Start
 To-Do
