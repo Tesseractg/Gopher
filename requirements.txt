@@ -4,3 +4,4 @@ python-whois
 tldextract
 pydot
 pandas
+pythonwhois

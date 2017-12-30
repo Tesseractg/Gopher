@@ -7,6 +7,7 @@ import pandas as pd
 import pygeoip
 import whois  # pip install python-whois
 import tldextract
+import pythonwhois
 
 from datetime import datetime
 from urlparse import urlparse
@@ -93,26 +94,64 @@ def safebrowsing(url):
 
 def whoisinfo(host):
     try:
-        rec = whois.whois(host)
-        creation_date = rec['creation_date']
-        if type(creation_date) == list:
-            creation = creation_date[0]
-        elif type(creation_date) == datetime:
-            creation = creation_date
-        elif type(creation_date) == unicode:
-            creation = datetime.strptime(str(creation_date).replace('before Aug-1996', '1-8-1996'), '%d-%m-%Y')
-        current = datetime.now()
-        months = (current.year - creation.year) * 12 + current.month - creation.month
-        return 10 if months < 3 \
-            else 9 if months < 5 \
-            else 8 if months < 7 \
-            else 7 if months < 9 \
-            else 6 if months < 11 \
-            else 5 if months < 13 \
-            else 4 if months < 15 \
-            else 3 if months < 17 \
-            else 2 if months < 19 \
-            else 1
+        domain = pythonwhois.get_whois(host)
+        cdate = nf
+        for lines in domain['raw'][0].split('\n'):
+            if 'Creation Date' in lines:
+                cdate = datetime.strptime(lines.split(': ')[1].split('T')[0], '%Y-%m-%d')
+                break
+            elif 'Created On' in lines:
+                try:
+                    cdate = datetime.strptime(lines.split(':')[1].split(' ')[0], '%d-%b-%Y')
+                except:
+                    cdate = datetime.strptime(lines.split(':')[1].strip(), '%Y-%m-%d')
+                    pass
+                break
+            elif 'Registration Time' in lines:
+                cdate = datetime.strptime(lines.split(': ')[1].split(' ')[0], '%Y-%m-%d')
+                break
+            elif 'created' in lines:
+                if 'T' in lines:
+                    cdate = datetime.strptime(lines.split(':')[1].strip().split('T')[0], '%Y-%m-%d')
+                elif '/' in lines:
+                    cdate = datetime.strptime(lines.split(':')[1].strip(), '%d/%m/%Y')
+                elif '-' in lines:
+                    cdate = datetime.strptime(lines.split(':')[1].strip(), '%Y-%m-%d')
+                elif '.' in lines:
+                    cdate = datetime.strptime(lines.split(':')[1].strip().split(' ')[0], '%Y.%m.%d')
+                else:
+                    date = lines.split(':')[1].strip()
+                    year = str(date[0:4])
+                    month = str(date[4:6])
+                    day = str(date[6:8])
+                    date = str(year + '-' + month + '-' + day)
+                    cdate = datetime.strptime(date, '%Y-%m-%d')
+                break
+            elif 'Registered on' in lines:
+                if 'before' in lines:
+                    cdate = datetime.strptime(
+                        str(lines).split(': ')[1].strip().replace('before Aug-1996', '01-08-1996'), '%d-%m-%Y')
+                else:
+                    cdate = datetime.strptime(lines.split(': ')[1].strip(), '%d-%b-%Y')
+                break
+            elif '[Connected Date]' in lines:
+                cdate = datetime.strptime(lines.split(']')[1].strip(), '%Y/%m/%d')
+                break
+            elif 'Created' in lines:
+                cdate = datetime.strptime(lines.split(':')[1].strip().split(' ')[0], '%Y-%m-%d')
+                break
+            elif 'Domain Name Commencement Date' in lines:
+                cdate = datetime.strptime(lines.split(': ')[1].strip(), '%d-%m-%Y')
+                break
+            elif 'Changed' in lines:
+                cdate = datetime.strptime(lines.split(':')[1].strip().split('T')[0], '%Y-%m-%d')
+                break
+        current = datetime.today()
+        if cdate != nf:
+            months = (current.year - cdate.year) * 12 + current.month - cdate.month
+            return months
+        else:
+            return nf
     except:
         return nf
 
